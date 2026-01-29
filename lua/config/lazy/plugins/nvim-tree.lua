@@ -20,8 +20,9 @@ return {
       },
       renderer = {
         root_folder_label = false, -- скрывать корневую папку в заголовке
-        highlight_git = true, -- подсвечивать файлы по git статусу
+        highlight_git = true, -- подсвечивать файлы по git статусу (цветовая индикация)
         highlight_opened_files = "all", -- подсвечивать все открытые файлы
+        group_empty = false, -- не группировать пустые папки
         indent_markers = {
           enable = true, -- отображение вертикальных линий для структуры папок (как в VSCode)
           inline_arrows = true, -- стрелки в индентации
@@ -38,7 +39,7 @@ return {
             file = true, -- показывать иконки файлов
             folder = true, -- показывать иконки папок
             folder_arrow = true, -- показывать стрелки у папок
-            git = true, -- показывать git иконки
+            git = true, -- показывать git иконки (используется для подсветки, символы не отображаются)
           },
           glyphs = {
             default = "", -- иконка обычного файла
@@ -53,16 +54,18 @@ return {
               symlink = "", -- символическая ссылка на папку
             },
             git = {
-              unstaged = "M", -- изменено, но не добавлено
-              staged = "A", -- добавлено
-              unmerged = "C", -- конфликт
-              renamed = "R", -- переименовано
-              untracked = "U", -- неотслеживаемый файл
-              deleted = "D", -- удалено
-              ignored = "I", -- игнорируемый
+              unstaged = "", -- пусто (используется только для подсветки цветом)
+              staged = "", -- пусто
+              unmerged = "", -- пусто
+              renamed = "", -- пусто
+              untracked = "", -- пусто
+              deleted = "", -- пусто
+              ignored = "", -- пусто
             },
           },
+          padding = " ", -- прокладка между иконкой и названием
         },
+        full_name = false, -- не показывать полный путь (экономит место)
       },
       filters = {
         dotfiles = false, -- показывать скрытые файлы
@@ -112,6 +115,33 @@ return {
       },
     })
 
+    -- ============================================================================
+    -- GIT STATUS HIGHLIGHTING (как в VSCode)
+    -- ============================================================================
+
+    local nvim_tree_highlight = vim.api.nvim_set_hl
+
+    -- Модифицированные файлы (жёлтый цвет)
+    nvim_tree_highlight(0, "NvimTreeGitModified", { fg = "#FDB813", bold = false })
+
+    -- Добавленные файлы (зелёный цвет)
+    nvim_tree_highlight(0, "NvimTreeGitNew", { fg = "#74C991", bold = false })
+
+    -- Удалённые файлы (красный цвет)
+    nvim_tree_highlight(0, "NvimTreeGitDeleted", { fg = "#F44747", bold = false })
+
+    -- Неотслеживаемые файлы (синий цвет)
+    nvim_tree_highlight(0, "NvimTreeGitUntracked", { fg = "#0097E6", bold = false })
+
+    -- Переименованные файлы (фиолетовый цвет)
+    nvim_tree_highlight(0, "NvimTreeGitRenamed", { fg = "#A166FF", bold = false })
+
+    -- Конфликтующие файлы (оранжевый цвет)
+    nvim_tree_highlight(0, "NvimTreeGitConflict", { fg = "#FF8C42", bold = true })
+
+    -- Игнорируемые файлы (серый цвет)
+    nvim_tree_highlight(0, "NvimTreeGitIgnored", { fg = "#808080", bold = false })
+
     -- Горячие клавиши
     vim.keymap.set("n", "<leader>e", ":NvimTreeToggle<CR>", {
       silent = true,
@@ -123,7 +153,15 @@ return {
     vim.api.nvim_create_autocmd("BufEnter", {
       nested = true,
       callback = function()
-        if #vim.api.nvim_list_wins() == 1 and require("nvim-tree.utils").is_nvim_tree_buf() then
+        -- Проверяем:
+        -- 1. Есть только одно окно
+        -- 2. Это окно - nvim-tree
+        -- 3. Есть ещё открытые буферы (чтобы не закрыть Neovim при последнем буфере)
+        local tree_utils = require("nvim-tree.utils")
+        local buf_count = #vim.api.nvim_list_bufs()
+        local win_count = #vim.api.nvim_list_wins()
+
+        if win_count == 1 and tree_utils.is_nvim_tree_buf() and buf_count <= 1 then
           vim.cmd("quit")
         end
       end,

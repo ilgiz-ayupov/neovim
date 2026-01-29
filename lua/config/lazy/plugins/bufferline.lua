@@ -3,15 +3,29 @@ return {
   lazy = false,
   priority = 500,
   dependencies = {
-    "DaikyXendo/nvim-material-icon",
+    "nvim-tree/nvim-web-devicons",
   },
   config = function()
     require("bufferline").setup({
       options = {
         mode = "buffers", -- режим отображения: "buffers" (буферы) или "tabs" (вкладки)
         numbers = "none", -- номера: "none", "ordinal" (1,2,3...), "buffer_id"
-        close_command = "bdelete! %d", -- команда при закрытии буфера
-        right_mouse_command = "bdelete! %d", -- ПКМ закрывает буфер
+        close_command = function(bufnum)
+          -- Не закрывать последний буфер
+          local buf_count = #vim.api.nvim_list_bufs()
+          if buf_count <= 1 then
+            vim.cmd("enew") -- создать новый пустой буфер
+          end
+          vim.cmd("bdelete! " .. bufnum)
+        end,
+        right_mouse_command = function(bufnum)
+          -- ПКМ закрывает буфер
+          local buf_count = #vim.api.nvim_list_bufs()
+          if buf_count <= 1 then
+            vim.cmd("enew")
+          end
+          vim.cmd("bdelete! " .. bufnum)
+        end,
         left_mouse_command = "buffer %d", -- ЛКМ переключает на буфер
         middle_mouse_command = nil, -- СКМ (по умолчанию отключено)
 
@@ -77,7 +91,22 @@ return {
       desc = "Прыжок по буферам",
     })
 
-    vim.keymap.set("n", "<S-x>", ":bdelete<CR>", {
+    vim.keymap.set("n", "<S-x>", function()
+      -- Безопасное закрытие буфера с переключением на соседний
+      local current_buf = vim.api.nvim_get_current_buf()
+      local buf_count = #vim.api.nvim_list_bufs()
+
+      if buf_count <= 1 then
+        -- Если это последний буфер, создаём новый и закрываем текущий
+        vim.cmd("enew")
+        vim.cmd("bdelete " .. current_buf)
+      else
+        -- Если есть другие буферы, переключаемся на них и закрываем текущий
+        -- BufferLineCyclePrev переключит на предыдущий активный буфер
+        vim.cmd("BufferLineCyclePrev")
+        vim.cmd("bdelete " .. current_buf)
+      end
+    end, {
       silent = true,
       noremap = true,
       desc = "Закрыть буфер",

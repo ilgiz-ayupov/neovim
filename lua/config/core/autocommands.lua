@@ -1,32 +1,45 @@
+-- ============================================================================
+-- AUTOCOMMANDS CONFIGURATION
+-- ============================================================================
+
 local augroup = vim.api.nvim_create_augroup
 local autocmd = vim.api.nvim_create_autocmd
 
-local general = augroup("General", { clear = true })
+local general_group = augroup("General", { clear = true })
+local format_group = augroup("Format", { clear = true })
 
--- ========= utils =========
+-- ============================================================================
+-- UTILITIES
+-- ============================================================================
 
-local ignore_ft = {
+local ignored_filetypes = {
   dashboard = true,
   NvimTree = true,
+  Trouble = true,
+  TelescopePrompt = true,
 }
 
 local function is_ignored(ft)
-  return ignore_ft[ft] == true
+  return ignored_filetypes[ft] == true
 end
 
--- ========= autocmds =========
+-- ============================================================================
+-- BASIC AUTOCOMMANDS
+-- ============================================================================
 
--- Remove trailing whitespace
+-- Удалять пробелы в конце строк при сохранении
 autocmd("BufWritePre", {
-  group = general,
+  group = format_group,
   desc = "Remove trailing whitespace on save",
+  pattern = "*",
   command = [[%s/\s\+$//e]],
 })
 
--- Restore cursor position
+-- Восстанавливать позицию курсора при открытии файла
 autocmd("BufReadPost", {
-  group = general,
+  group = general_group,
   desc = "Restore cursor position",
+  pattern = "*",
   callback = function()
     local mark = vim.api.nvim_buf_get_mark(0, '"')
     local line_count = vim.api.nvim_buf_line_count(0)
@@ -37,9 +50,13 @@ autocmd("BufReadPost", {
   end,
 })
 
--- Enable treesitter features per-buffer
+-- ============================================================================
+-- TREESITTER FEATURES
+-- ============================================================================
+
+-- Включать treesitter для каждого буфера
 autocmd("FileType", {
-  group = general,
+  group = general_group,
   desc = "Enable treesitter features",
   callback = function(ev)
     local ft = ev.match
@@ -49,9 +66,22 @@ autocmd("FileType", {
       return
     end
 
-    -- если нет парсера — просто выходим
+    -- Попытка запустить treesitter парсер
     if not pcall(vim.treesitter.start, bufnr) then
       return
     end
+  end,
+})
+
+-- ============================================================================
+-- DOCUMENT FORMATTING
+-- ============================================================================
+
+-- Убирать пробелы и переводы строк при вставке из буфера обмена
+autocmd("TextYankPost", {
+  group = general_group,
+  desc = "Highlight on yank",
+  callback = function()
+    vim.highlight.on_yank({ timeout = 200 })
   end,
 })

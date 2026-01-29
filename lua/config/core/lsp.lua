@@ -1,73 +1,92 @@
+-- ============================================================================
+-- LSP CONFIGURATION
+-- ============================================================================
+
 local keymap = vim.keymap
 
+-- ============================================================================
+-- LSP KEYMAPS
+-- ============================================================================
+
 vim.api.nvim_create_autocmd("LspAttach", {
-  group = vim.api.nvim_create_augroup("UserLspConfig", {}),
+  group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
   callback = function(ev)
-    -- Локальные биндинги для буфера.
-    -- См. `:help vim.lsp.*` для документации по функциям ниже
-    local opts = { buffer = ev.buf, silent = true }
+    local opts = { buffer = ev.buf, silent = true, noremap = true }
 
-    -- установка сочетаний клавиш
-    opts.desc = "Показать ссылки LSP"
-    keymap.set("n", "gR", "<cmd>Telescope lsp_references<CR>", opts)
+    local function map(mode, lhs, rhs, desc)
+      vim.keymap.set(mode, lhs, rhs, vim.tbl_extend("force", opts, { desc = desc }))
+    end
 
-    opts.desc = "Перейти к объявлению"
-    keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
+    -- ========== НАВИГАЦИЯ ==========
 
-    opts.desc = "Показать определение LSP"
-    keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+    map("n", "gR", "<cmd>Telescope lsp_references<CR>", "Показать ссылки LSP")
+    map("n", "gD", vim.lsp.buf.declaration, "Перейти к объявлению")
+    map("n", "gd", vim.lsp.buf.definition, "Показать определение LSP")
+    map("n", "gi", "<cmd>Telescope lsp_implementations<CR>", "Показать реализации LSP")
+    map("n", "gt", "<cmd>Telescope lsp_type_definitions<CR>", "Показать определения типов LSP")
 
-    opts.desc = "Показать реализации LSP"
-    keymap.set("n", "gi", "<cmd>Telescope lsp_implementations<CR>", opts)
+    -- ========== ДЕЙСТВИЯ С КОДОМ ==========
 
-    opts.desc = "Показать определения типов LSP"
-    keymap.set("n", "gt", "<cmd>Telescope lsp_type_definitions<CR>", opts)
+    map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, "Показать доступные действия кода")
+    map("n", "<leader>rn", vim.lsp.buf.rename, "Умное переименование")
 
-    opts.desc = "Показать доступные действия кода"
-    keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
+    -- ========== ДИАГНОСТИКА ==========
 
-    opts.desc = "Умное переименование"
-    keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
-
-    opts.desc = "Показать диагностику буфера"
-    keymap.set("n", "<leader>D", "<cmd>Telescope diagnostics bufnr=0<CR>", opts)
-
-    opts.desc = "Показать диагностику строки"
-    keymap.set("n", "<leader>d", function()
+    map("n", "<leader>D", "<cmd>Telescope diagnostics bufnr=0<CR>", "Показать диагностику буфера")
+    map("n", "<leader>d", function()
       vim.diagnostic.open_float({ border = "rounded" })
-    end, opts)
+    end, "Показать диагностику строки")
 
-    opts.desc = "Перейти к предыдущей диагностике"
-    keymap.set("n", "[d", function()
+    map("n", "[d", function()
       vim.diagnostic.jump({ count = -1, float = { border = "rounded" } })
-    end, opts)
+    end, "Перейти к предыдущей диагностике")
 
-    opts.desc = "Перейти к следующей диагностике"
-    keymap.set("n", "]d", function()
+    map("n", "]d", function()
       vim.diagnostic.jump({ count = 1, float = { border = "rounded" } })
-    end, opts)
+    end, "Перейти к следующей диагностике")
 
-    opts.desc = "Показать документацию под курсором"
-    keymap.set("n", "K", vim.lsp.buf.hover, opts)
+    -- ========== ДОКУМЕНТАЦИЯ ==========
 
-    opts.desc = "Перезапустить LSP"
-    keymap.set("n", "<leader>rs", ":LspRestart<CR>", opts)
+    map("n", "K", vim.lsp.buf.hover, "Показать документацию под курсором")
+
+    -- ========== ПРОЧЕЕ ==========
+
+    map("n", "<leader>rs", ":LspRestart<CR>", "Перезапустить LSP")
   end,
 })
 
--- Inline Hints
+-- ============================================================================
+-- INLINE HINTS
+-- ============================================================================
+
 vim.lsp.inlay_hint.enable(true)
 
--- Diagnostics
+-- ============================================================================
+-- DIAGNOSTICS CONFIGURATION
+-- ============================================================================
+
 local severity = vim.diagnostic.severity
 
 vim.diagnostic.config({
+  virtual_text = {
+    severity = { min = severity.WARN }, -- показывать только warnings и errors
+    prefix = "●", -- префикс для virtual text
+  },
   signs = {
     text = {
-      [severity.ERROR] = " ",
-      [severity.WARN] = " ",
+      [severity.ERROR] = " ",
+      [severity.WARN] = " ",
       [severity.HINT] = "󰠠 ",
-      [severity.INFO] = " ",
+      [severity.INFO] = " ",
     },
+  },
+  underline = true,
+  update_in_insert = false,
+  severity_sort = true,
+  float = {
+    border = "rounded",
+    source = "always",
+    header = "",
+    prefix = "",
   },
 })
