@@ -21,6 +21,23 @@ require("lazy").setup({
     -- импорт плагинов
     { import = "config/lazy/plugins" },
   },
-  -- автоматическая проверка обновлений для плагинов
-  checker = { enabled = true },
+  -- автоматическая проверка обновлений для плагинов (disabled for performance)
+  checker = { enabled = false },
+  -- performance optimizations
+  performance = {
+    rtp = {
+      disabled_plugins = {
+        "gzip",
+        "matchit",
+        "matchparen",
+        "netrwPlugin",
+        "tarPlugin",
+        "tohtml",
+        "tutor",
+        "zipPlugin",
+      },
+    },
+  },
+  -- ui optimizations
+  ui = { border = "single" },
 })

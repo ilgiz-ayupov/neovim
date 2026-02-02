@@ -2,8 +2,6 @@
 -- LSP CONFIGURATION
 -- ============================================================================
 
-local keymap = vim.keymap
-
 -- ============================================================================
 -- LSP KEYMAPS
 -- ============================================================================
@@ -27,12 +25,22 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
     -- ========== ДЕЙСТВИЯ С КОДОМ ==========
 
-    map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, "Показать доступные действия кода")
+    map(
+      { "n", "v" },
+      "<leader>ca",
+      vim.lsp.buf.code_action,
+      "Показать доступные действия кода"
+    )
     map("n", "<leader>rn", vim.lsp.buf.rename, "Умное переименование")
 
     -- ========== ДИАГНОСТИКА ==========
 
-    map("n", "<leader>D", "<cmd>Telescope diagnostics bufnr=0<CR>", "Показать диагностику буфера")
+    map(
+      "n",
+      "<leader>D",
+      "<cmd>Telescope diagnostics bufnr=0<CR>",
+      "Показать диагностику буфера"
+    )
     map("n", "<leader>d", function()
       vim.diagnostic.open_float({ border = "rounded" })
     end, "Показать диагностику строки")

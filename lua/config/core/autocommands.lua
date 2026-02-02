@@ -54,20 +54,19 @@ autocmd("BufReadPost", {
 -- TREESITTER FEATURES
 -- ============================================================================
 
--- Включать treesitter для каждого буфера
-autocmd("FileType", {
+-- Включать treesitter для каждого буфера (оптимизировано)
+autocmd("BufReadPost", {
   group = general_group,
   desc = "Enable treesitter features",
   callback = function(ev)
-    local ft = ev.match
-    local bufnr = ev.buf
-
+    local ft = vim.bo[ev.buf].filetype
+    
     if is_ignored(ft) then
       return
     end
 
     -- Попытка запустить treesitter парсер
-    if not pcall(vim.treesitter.start, bufnr) then
+    if not pcall(vim.treesitter.start, ev.buf) then
       return
     end
   end,
