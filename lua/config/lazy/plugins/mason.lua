@@ -3,10 +3,9 @@ return {
     "williamboman/mason-lspconfig.nvim",
     opts = {
       -- список серверов для установки
-      ensure_installed = {
-        "lua_ls",
-        "gopls",
-      },
+      -- ensure_installed = {
+      --  "lua_ls",
+      -- },
     },
     dependencies = {
       {
@@ -28,9 +27,12 @@ return {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     opts = {
       ensure_installed = {
-        "stylua", -- lua formatter
-        "gofumpt",
+        "lua_ls",
+        "stylua",
         "prettierd",
+        "dockerls",
+        "jsonls",
+        "yamlls",
       },
     },
     dependencies = {

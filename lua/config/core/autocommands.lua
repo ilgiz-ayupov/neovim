@@ -1,16 +1,8 @@
--- ============================================================================
--- AUTOCOMMANDS CONFIGURATION
--- ============================================================================
-
 local augroup = vim.api.nvim_create_augroup
 local autocmd = vim.api.nvim_create_autocmd
 
 local general_group = augroup("General", { clear = true })
 local format_group = augroup("Format", { clear = true })
-
--- ============================================================================
--- UTILITIES
--- ============================================================================
 
 local ignored_filetypes = {
   dashboard = true,
@@ -22,10 +14,6 @@ local ignored_filetypes = {
 local function is_ignored(ft)
   return ignored_filetypes[ft] == true
 end
-
--- ============================================================================
--- BASIC AUTOCOMMANDS
--- ============================================================================
 
 -- Удалять пробелы в конце строк при сохранении
 autocmd("BufWritePre", {
@@ -50,17 +38,13 @@ autocmd("BufReadPost", {
   end,
 })
 
--- ============================================================================
--- TREESITTER FEATURES
--- ============================================================================
-
 -- Включать treesitter для каждого буфера (оптимизировано)
 autocmd("BufReadPost", {
   group = general_group,
   desc = "Enable treesitter features",
   callback = function(ev)
     local ft = vim.bo[ev.buf].filetype
-    
+
     if is_ignored(ft) then
       return
     end
@@ -71,10 +55,6 @@ autocmd("BufReadPost", {
     end
   end,
 })
-
--- ============================================================================
--- DOCUMENT FORMATTING
--- ============================================================================
 
 -- Убирать пробелы и переводы строк при вставке из буфера обмена
 autocmd("TextYankPost", {
